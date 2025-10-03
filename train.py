@@ -67,6 +67,8 @@ def evaluate(data,y_styles,alpha):
     return con_loss,sty_loss,loss
 
 def main():
+    print('new test')
+    
     global model,c_loss,s_loss,device
     args = get_args()
     gradient_accumulation_steps = args.accumulative_steps
@@ -125,7 +127,7 @@ def main():
 
 
     for epoch in range(args.epochs):
-        if not dist.is_initialized() or dist.get_rank() == 0:  # single GPU or main process
+        if accelerator.is_main_process:  # single GPU or main process
             loop = tqdm.tqdm(zip(train_loader, cycle(styles_loader)),
                             unit='batch', total=len(train_loader))
         else:
@@ -152,7 +154,7 @@ def main():
                 #     style_loss_history.append(style_loss.item())
                 #     total_loss_history.append(loss.item())
                 
-                if i % next_eval == 0 and i > 0 and accelerator.is_main_process:
+                if i % next_eval == 0 and i > 0:
                     con_loss,sty_loss,tot_loss = evaluate(val_loader,styles_loader,alpha)
                     model.train()
                     next_eval = next_eval + int(len(train_loader)*args.eval_interval)
@@ -163,21 +165,21 @@ def main():
                     # plt.xlabel('iterations')
                 
                 # loop.set_postfix(content_loss = content_loss.item(),style_loss = f'{style_loss.item()*args.alpha}/ {style_loss.item()}',loss=loss.item(),lr=optimizer.param_groups[0]['lr'],val_con_loss=con_loss,val_sty_loss=sty_loss,val_tot_loss=tot_loss)
-                loop.set_postfix_str(
-                    f"content={content_loss.item():.4f} | "+
-                    f"style={style_loss.item()*args.alpha:.4f}/{style_loss.item():.4f} | "+
-                    f"loss={loss.item():.4f} | "+
-                    f"lr={optimizer.param_groups[0]['lr']:.6f} | "+
-                    f"val_con={con_loss:.4f} | "+
-                    f"val_sty={sty_loss:.4f} | "+
-                    f"val_tot={tot_loss:.4f}"
-                )
-                loop.set_description(f'Epoch [{epoch+1}/{args.epochs}]')
+                if isinstance(loop,tqdm.tqdm):
+                    loop.set_postfix_str(
+                        f"content={content_loss.item():.4f} | "+
+                        f"style={style_loss.item()*args.alpha:.4f}/{style_loss.item():.4f} | "+
+                        f"loss={loss.item():.4f} | "+
+                        f"lr={optimizer.param_groups[0]['lr']:.6f} | "+
+                        f"val_con={con_loss:.4f} | "+
+                        f"val_sty={sty_loss:.4f} | "+
+                        f"val_tot={tot_loss:.4f}"
+                    )
+                    loop.set_description(f'Epoch [{epoch+1}/{args.epochs}]')
         
         if accelerator.is_main_process and (epoch+1) % args.save_interval == 0:
             timestamp = datetime.now().strftime("%m-%d_%H-%M-%S")
             save_path = f"model_weights_{timestamp}.pth"
-            # unwrapped_model = accelerator.unwrap_model(model)
             torch.save(model.state_dict(),save_path)
             print(f'Saved model checkpoint at {save_path}')
 if __name__ == "__main__":
