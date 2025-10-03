@@ -129,8 +129,10 @@ def main():
     for epoch in range(args.epochs):
         if accelerator.is_main_process:  # single GPU or main process
             loop = tqdm.tqdm(zip(train_loader, cycle(styles_loader)),
-                            unit='batch', total=len(train_loader),
-                            ncols= 300),
+                            unit='batch',
+                            total=len(train_loader),
+                            ncols=300
+                            )
         else:
             loop = zip(train_loader, cycle(styles_loader))  # no tqdm on other GPUs
         # loop = tqdm.tqdm(zip(train_loader, cycle(styles_loader)),unit='batch',total=len(train_loader)) # test this
