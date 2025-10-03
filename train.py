@@ -129,7 +129,8 @@ def main():
     for epoch in range(args.epochs):
         if accelerator.is_main_process:  # single GPU or main process
             loop = tqdm.tqdm(zip(train_loader, cycle(styles_loader)),
-                            unit='batch', total=len(train_loader))
+                            unit='batch', total=len(train_loader),
+                            ncols= 300),
         else:
             loop = zip(train_loader, cycle(styles_loader))  # no tqdm on other GPUs
         # loop = tqdm.tqdm(zip(train_loader, cycle(styles_loader)),unit='batch',total=len(train_loader)) # test this
@@ -164,17 +165,17 @@ def main():
                     # plt.plot(style_loss_history,label='style loss')
                     # plt.xlabel('iterations')
                 
-                # loop.set_postfix(content_loss = content_loss.item(),style_loss = f'{style_loss.item()*args.alpha}/ {style_loss.item()}',loss=loss.item(),lr=optimizer.param_groups[0]['lr'],val_con_loss=con_loss,val_sty_loss=sty_loss,val_tot_loss=tot_loss)
                 if isinstance(loop,tqdm.tqdm):
-                    loop.set_postfix_str(
-                        f"content={content_loss.item():.4f} | "+
-                        f"style={style_loss.item()*args.alpha:.4f}/{style_loss.item():.4f} | "+
-                        f"loss={loss.item():.4f} | "+
-                        f"lr={optimizer.param_groups[0]['lr']:.6f} | "+
-                        f"val_con={con_loss:.4f} | "+
-                        f"val_sty={sty_loss:.4f} | "+
-                        f"val_tot={tot_loss:.4f}"
-                    )
+                    loop.set_postfix(content_loss = content_loss.item(),style_loss = f'{style_loss.item()*args.alpha}/ {style_loss.item()}',loss=loss.item(),lr=optimizer.param_groups[0]['lr'],val_con_loss=con_loss,val_sty_loss=sty_loss,val_tot_loss=tot_loss)
+                    # loop.set_postfix_str(
+                    #     f"content={content_loss.item():.4f} | "+
+                    #     f"style={style_loss.item()*args.alpha:.4f}/{style_loss.item():.4f} | "+
+                    #     f"loss={loss.item():.4f} | "+
+                    #     f"lr={optimizer.param_groups[0]['lr']:.6f} | "+
+                    #     f"val_con={con_loss:.4f} | "+
+                    #     f"val_sty={sty_loss:.4f} | "+
+                    #     f"val_tot={tot_loss:.4f}"
+                    # )
                     loop.set_description(f'Epoch [{epoch+1}/{args.epochs}]')
         
         if accelerator.is_main_process and (epoch+1) % args.save_interval == 0:
