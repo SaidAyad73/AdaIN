@@ -108,7 +108,7 @@ def get_decoder():
     )
     return decoder
 
-def get_model(checkpoint_path = 'model_weightsV5.pth'):
+def get_model(checkpoint_path = None):
     ada = AdaIN(.000001)
     encoder = get_vgg_encoder()
     decoder = get_decoder()
