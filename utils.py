@@ -31,7 +31,7 @@ class ContentLoss(nn.Module):
     self.encoder = encoder
   def forward(self,y_gen,t):
     y_gen = self.encoder(y_gen)
-    return ((y_gen-t)**2).sum()
+    return ((y_gen-t)**2).mean()
 
 class StyleLoss(nn.Module):#wrong encoder
   def __init__(self,encoder,layers_idx:list[int] = [1,6,11,20]):# not good practice to use mutable as default argument but i'm lazy
@@ -49,7 +49,7 @@ class StyleLoss(nn.Module):#wrong encoder
         std_g = y_gen.std(dim=(2, 3))
         std_s = y_style.std(dim=(2, 3))
         # loss += ((y_gen.mean(dim = (2,3)) - y_style.mean(dim = (2,3)))**2) + ((y_gen.std(dim = (2,3)) - y_style.std(dim = (2,3)))**2)
-        loss += ((mean_g - mean_s) ** 2 + (std_g - std_s) ** 2).sum()
+        loss += ((mean_g - mean_s) ** 2 + (std_g - std_s) ** 2).mean()
     return loss
 
 
