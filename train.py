@@ -80,6 +80,8 @@ def main():
         ToTensor(),
         Lambda(resizeWithAspectRatio),
         RandomCrop((224,224)),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                        std=[0.229, 0.224, 0.225])
     ]
     images_train_paths = [os.path.join(root, file) for root,dirs,files in os.walk(args.images_train_path) for file in files if file.endswith(('png','jpg','jpeg'))]
     images_val_paths = [os.path.join(root, file) for root,dirs,files in os.walk(args.images_val_path) for file in files if file.endswith(('png','jpg','jpeg'))]
@@ -103,7 +105,7 @@ def main():
     model = get_model(args.checkpoint_path)
     model.to(device)
     c_loss = ContentLoss(model.encoder).to(device)
-    s_loss = StyleLoss(model.encoder,1).to(device)
+    s_loss = StyleLoss(model.encoder).to(device)
     print(f'using model with checkpoint: {args.checkpoint_path}')
     
     optimizer = torch.optim.Adam(model.parameters(),lr=args.lr)

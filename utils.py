@@ -33,17 +33,17 @@ class ContentLoss(nn.Module):
     y_gen = self.encoder(y_gen)
     return ((y_gen-t)**2).sum()
 
-class StyleLoss(nn.Module):
-  def __init__(self,encoder,to_layer:int):
+class StyleLoss(nn.Module):#wrong encoder
+  def __init__(self,encoder,layers_idx:list[int] = [1,6,11,20]):# not good practice to use mutable as default argument but i'm lazy
     super().__init__()
     self.encoder = encoder
-    self.layers_range = range(0,to_layer)
+    self.layers_idx = layers_idx
   def forward(self,y_gen,y_style):
     loss = 0.0
     for i,layer in enumerate(self.encoder):
-      if i in self.layers_range:
-        y_gen = layer(y_gen)
-        y_style = layer(y_style)
+      y_gen = layer(y_gen)
+      y_style = layer(y_style)
+      if i in self.layers_idx:
         mean_g = y_gen.mean(dim=(2, 3))
         mean_s = y_style.mean(dim=(2, 3))
         std_g = y_gen.std(dim=(2, 3))
@@ -51,6 +51,8 @@ class StyleLoss(nn.Module):
         # loss += ((y_gen.mean(dim = (2,3)) - y_style.mean(dim = (2,3)))**2) + ((y_gen.std(dim = (2,3)) - y_style.std(dim = (2,3)))**2)
         loss += ((mean_g - mean_s) ** 2 + (std_g - std_s) ** 2).sum()
     return loss
+
+
 
 class AdaINModel(nn.Module):
   """
@@ -88,7 +90,7 @@ class ImagesDataset(Dataset):
 
 def get_vgg_encoder():
     vgg19 = models.vgg19(weights = models.VGG19_Weights.IMAGENET1K_V1)
-    encoder = copy.deepcopy(vgg19.features[:22])
+    encoder = copy.deepcopy(vgg19.features[:21])
     return encoder
 
 def get_decoder():
