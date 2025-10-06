@@ -115,9 +115,9 @@ class AdaINLitModule(L.LightningModule):
         s_loss = self.style_loss(y_gen,style)
         loss = c_loss * self.content_weight + s_loss * self.style_weight
         self.train_loss.append((c_loss.item(),s_loss.item(),loss.item()))
-        self.log('train_loss',loss)
-        self.log('train_content_loss',c_loss)
-        self.log('train_style_loss',s_loss)
+        self.log('train_loss',loss,prog_bar=True)
+        self.log(f'train_content_loss * {self.content_weight}',c_loss,prog_bar=True)
+        self.log(f'train_style_loss * {self.style_weight}',s_loss,prog_bar=True)
         return loss
     
     def validation_step(self,batch,batch_idx):
@@ -128,9 +128,9 @@ class AdaINLitModule(L.LightningModule):
         s_loss = self.style_loss(y_gen,style)
         loss = c_loss * self.content_weight + s_loss * self.style_weight
         self.val_loss.append((c_loss.item(),s_loss.item(),loss.item()))
-        self.log('val_loss',loss)
-        self.log('val_content_loss',c_loss)
-        self.log('val_style_loss',s_loss)
+        self.log('val_loss',loss,prog_bar=True)
+        self.log(f'val_content_loss * {self.content_weight}',c_loss,prog_bar=True)
+        self.log(f'val_style_loss * {self.style_weight}',s_loss,prog_bar=True)
         return loss
     
     def test_step(self,batch,batch_idx):
